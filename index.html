@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Simple Lucky Wheel</title>
+    <meta http-equiv="X-Frame-Options" content="ALLOWALL">
+    <style>
+        body {
+            background: #222;
+            color: #fff;
+            font-family: sans-serif;
+            margin: 0;
+        }
+
+        #container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        #wheel {
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            border: 8px solid #ff0;
+            background: conic-gradient(#f66 0 60deg, #6f6 60deg 120deg, #66f 120deg 180deg, #ff6 180deg 240deg, #6ff 240deg 300deg, #f6f 300deg 360deg);
+            position: relative;
+            transition: transform 4s cubic-bezier(.17, .67, .83, .67);
+        }
+
+        #pointer {
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-bottom: 40px solid #fff;
+            position: absolute;
+            left: 50%;
+            top: -40px;
+            transform: translateX(-50%);
+            z-index: 2;
+        }
+
+        #spinBtn {
+            margin-top: 30px;
+            padding: 12px 32px;
+            font-size: 1.2em;
+            background: #ff0;
+            color: #a00;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #popup {
+            display: none;
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.6);
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        #popupContent {
+            background: #fff;
+            color: #a00;
+            padding: 32px 48px;
+            border-radius: 12px;
+            font-size: 1.5em;
+            text-align: center;
+        }
+
+        #closePopup {
+            margin-top: 20px;
+            padding: 8px 24px;
+            font-size: 1em;
+            background: #a00;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="container">
+        <div id="wheel" style="position:relative;">
+            <div id="pointer"></div>
+        </div>
+        <button id="spinBtn">SPIN</button>
+    </div>
+    <div id="popup">
+        <div id="popupContent">
+            <div id="popupText"></div>
+            <button id="closePopup">Close</button>
+        </div>
+    </div>
+    <script>
+        const wheel = document.getElementById('wheel');
+        const spinBtn = document.getElementById('spinBtn');
+        const popup = document.getElementById('popup');
+        const popupText = document.getElementById('popupText');
+        const closePopup = document.getElementById('closePopup');
+        let spinning = false;
+        let popupVisible = false;
+        const prizes = ["$10", "$20", "$50", "$100", "$5", "$0"];
+        const sliceCount = prizes.length;
+
+        function spinWheel() {
+            if (spinning || popupVisible) return;
+            spinning = true;
+            spinBtn.disabled = true;
+            // Pick a random prize
+            const prizeIndex = Math.floor(Math.random() * sliceCount);
+            // Calculate the angle to stop at (center of slice)
+            const sliceAngle = 360 / sliceCount;
+            const stopAngle = 360 * 5 + (360 - (prizeIndex * sliceAngle + sliceAngle / 2));
+            wheel.style.transition = 'transform 4s cubic-bezier(.17,.67,.83,.67)';
+            wheel.style.transform = `rotate(${stopAngle}deg)`;
+            setTimeout(() => {
+                showPopup(prizes[prizeIndex]);
+                spinning = false;
+                spinBtn.disabled = false;
+            }, 4000);
+        }
+
+        function showPopup(prize) {
+            popupText.textContent = `You won ${prize}!`;
+            popup.style.display = 'flex';
+            popupVisible = true;
+        }
+
+        function hidePopup() {
+            popup.style.display = 'none';
+            popupVisible = false;
+        }
+
+        spinBtn.addEventListener('click', spinWheel);
+        closePopup.addEventListener('click', hidePopup);
+
+        // Prevent closing (e.g. with ESC or click outside) while spinning or popup is open
+        window.addEventListener('mousedown', (e) => {
+            if (spinning || popupVisible) {
+                // Block closing or other actions here if needed
+                e.stopPropagation();
+            }
+        });
+
+        // Optional: Prevent closing with ESC key while spinning or popup is open
+        window.addEventListener('keydown', (e) => {
+            if ((spinning || popupVisible) && e.key === 'Escape') {
+                e.preventDefault();
+            }
+        });
+    </script>
+</body>
+
+</html>
